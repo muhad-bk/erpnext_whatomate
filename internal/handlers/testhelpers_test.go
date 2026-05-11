@@ -36,6 +36,13 @@ func withHTTPClient(client *http.Client) appOption {
 	}
 }
 
+// withWhatsAppConfig merges WhatsApp settings into the test App config (JWT and other fields preserved).
+func withWhatsAppConfig(w config.WhatsAppConfig) appOption {
+	return func(a *handlers.App) {
+		a.Config.WhatsApp = w
+	}
+}
+
 // newTestApp creates an App instance for testing with a test database, Redis, and default config.
 // Skips the test if TEST_REDIS_URL is not set.
 func newTestApp(t *testing.T, opts ...appOption) *handlers.App {

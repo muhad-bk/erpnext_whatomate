@@ -105,7 +105,7 @@ full_name = "Admin"
 ```
 
 <Aside type="note">
-  WhatsApp Cloud API credentials and AI provider API keys (OpenAI, Anthropic, Google) are configured **per organization** through the UI under **Settings → Accounts** — they are not in `config.toml`.
+  WhatsApp **per-number** credentials (phone ID, WABA ID, access token) are configured **per organization** under **Settings → Accounts**. Optional server-wide Meta settings (`[whatsapp]`, including Embedded Signup) live in `config.toml`. AI provider API keys are configured per organization in the UI.
 </Aside>
 
 ## Sections in detail
@@ -237,6 +237,12 @@ with underscores in `<KEY>` preserved. Examples:
 | `WHATOMATE_RATE_LIMIT_ENABLED` | `rate_limit.enabled` |
 | `WHATOMATE_CALLING_PUBLIC_IP` | `calling.public_ip` |
 | `WHATOMATE_DEFAULT_ADMIN_PASSWORD` | `default_admin.password` |
+| `WHATOMATE_WHATSAPP_WEBHOOK_VERIFY_TOKEN` | `whatsapp.webhook_verify_token` |
+| `WHATOMATE_WHATSAPP_API_VERSION` | `whatsapp.api_version` |
+| `WHATOMATE_WHATSAPP_BASE_URL` | `whatsapp.base_url` |
+| `WHATOMATE_WHATSAPP_META_APP_ID` | `whatsapp.meta_app_id` |
+| `WHATOMATE_WHATSAPP_META_APP_SECRET` | `whatsapp.meta_app_secret` |
+| `WHATOMATE_WHATSAPP_EMBEDDED_SIGNUP_CONFIG_ID` | `whatsapp.embedded_signup_config_id` |
 
 Env vars take precedence over the config file, so the typical pattern is to commit a non-secret `config.toml` and inject secrets (`*_PASSWORD`, `*_KEY`, `*_SECRET`, `JWT_SECRET`) via the deployment environment.
 
@@ -266,7 +272,9 @@ Schema is generated from GORM struct tags in `internal/models/`; there are no SQ
 
 ## WhatsApp API Configuration
 
-WhatsApp Cloud API credentials are **not** in `config.toml`. Configure them per organization in the UI:
+Per-phone WhatsApp Cloud API credentials are stored **per organization** (database), not only in `config.toml`. You can onboard in either of two ways:
+
+### Manual account (default)
 
 1. Navigate to **Settings → Accounts**
 2. Click **Add Account**
@@ -274,7 +282,27 @@ WhatsApp Cloud API credentials are **not** in `config.toml`. Configure them per 
    - **Phone Number ID** — from Meta Business Suite
    - **Business Account ID** — from Meta Business Suite
    - **Access Token** — generated in Meta for Developers
-   - **Webhook Verify Token** — your custom verification token
+   - **Webhook Verify Token** — your custom verification token (auto-generated if left empty)
+
+### Meta Embedded Signup (optional)
+
+When `[whatsapp].meta_app_id`, `meta_app_secret`, and `embedded_signup_config_id` are all set, **Settings → Accounts → Add Account** also shows **Connect with Meta**. That flow uses the Facebook JavaScript SDK and [WhatsApp Embedded Signup](https://developers.facebook.com/docs/whatsapp/embedded-signup/implementation): the browser receives an OAuth `code` and `phone_number_id` / `waba_id`, and the server exchanges the code for an access token, then creates the same WhatsApp account record as manual entry.
+
+In the Meta App Dashboard: enable **Login with JavaScript SDK**, add your UI origin under **Allowed domains** and **Valid OAuth redirect URIs**, and create a **Facebook Login for Business** configuration from the WhatsApp Embedded Signup template; use its **configuration ID** in `embedded_signup_config_id`.
+
+### `[whatsapp]` in `config.toml`
+
+| Field | Notes |
+|---|---|
+| `webhook_verify_token` | Optional global fallback for `GET /api/webhook` verification (see webhooks doc). Per-account tokens in the DB are still checked. |
+| `api_version` | Graph API version for server calls and for `FB.init` version in Embedded Signup (default `v18.0` if unset in code). |
+| `base_url` | Meta Graph host (default `https://graph.facebook.com`). |
+| `meta_app_id`, `meta_app_secret`, `embedded_signup_config_id` | Required together to enable Embedded Signup. **Never** expose `meta_app_secret` to the browser. |
+
+### Meta webhooks (operator checklist)
+
+1. In Meta Developer Console, set the WhatsApp product webhook **Callback URL** to `https://<your-public-host>/api/webhook` (same path for `GET` verify and `POST` events). Localhost is not reachable by Meta; use a tunnel (e.g. ngrok) for development.
+2. Set the **Verify token** in Meta to match either `[whatsapp].webhook_verify_token` **or** the per-account **Webhook Verify Token** shown in Whatomate after the account is created.
 
 <Aside type="caution">
   Access tokens are encrypted at rest using `app.encryption_key`. If you haven't set that, tokens are stored in plaintext.

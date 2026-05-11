@@ -113,6 +113,16 @@ udp_port_max = 10100          # WebRTC UDP port range end
 # username = "user"
 # credential = "password"
 
+# Meta / WhatsApp Cloud API (server-wide)
+[whatsapp]
+# webhook_verify_token = ""   # Optional: if set, Meta webhook GET /api/webhook can verify using this token alone
+# api_version = "v21.0"       # Graph API version for outbound calls (default v18.0 if omitted in code defaults)
+# base_url = "https://graph.facebook.com"
+# Embedded Signup (optional): all three must be set to show "Connect with Meta" on Add Account
+# meta_app_id = ""
+# meta_app_secret = ""              # WHATOMATE_WHATSAPP_META_APP_SECRET in production
+# embedded_signup_config_id = ""    # Facebook Login for Business configuration ID (WhatsApp Embedded Signup template)
+
 # Default admin credentials (only used during initial setup when no users exist)
 [default_admin]
 email = "admin@admin.com"

@@ -601,6 +601,8 @@ func setupRoutes(g *fastglue.Fastglue, app *handlers.App, lo logf.Logger, basePa
 	g.DELETE("/api/api-keys/{id}", app.DeleteAPIKey)
 
 	// Accounts
+	g.GET("/api/integrations/meta/embedded-signup", app.GetMetaEmbeddedSignupConfig)
+	g.POST("/api/accounts/embedded-signup", app.CreateAccountEmbeddedSignup)
 	g.GET("/api/accounts", app.ListAccounts)
 	g.POST("/api/accounts", app.CreateAccount)
 	g.GET("/api/accounts/{id}", app.GetAccount)

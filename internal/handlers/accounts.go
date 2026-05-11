@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -57,6 +58,72 @@ type AccountResponse struct {
 	UpdatedAt          string     `json:"updated_at"`
 }
 
+// errInvalidAccountRequest is returned when required plaintext fields are missing for a new account.
+var errInvalidAccountRequest = errors.New("invalid account request: missing required fields")
+
+// persistNewWhatsAppAccount inserts a new WhatsApp account from plaintext credentials in req.
+func (a *App) persistNewWhatsAppAccount(orgID, userID uuid.UUID, req AccountRequest) (*models.WhatsAppAccount, error) {
+	if req.Name == "" || req.PhoneID == "" || req.BusinessID == "" || req.AccessToken == "" {
+		return nil, errInvalidAccountRequest
+	}
+
+	webhookVerifyToken := req.WebhookVerifyToken
+	if webhookVerifyToken == "" {
+		webhookVerifyToken = generateVerifyToken()
+	}
+
+	apiVersion := req.APIVersion
+	if apiVersion == "" {
+		apiVersion = "v21.0"
+	}
+
+	encKey := a.Config.App.EncryptionKey
+	encAccessToken, err := crypto.Encrypt(req.AccessToken, encKey)
+	if err != nil {
+		return nil, fmt.Errorf("encrypt access token: %w", err)
+	}
+	encAppSecret, err := crypto.Encrypt(req.AppSecret, encKey)
+	if err != nil {
+		return nil, fmt.Errorf("encrypt app secret: %w", err)
+	}
+
+	account := models.WhatsAppAccount{
+		OrganizationID:     orgID,
+		Name:               req.Name,
+		AppID:              req.AppID,
+		PhoneID:            req.PhoneID,
+		BusinessID:         req.BusinessID,
+		AccessToken:        encAccessToken,
+		AppSecret:          encAppSecret,
+		WebhookVerifyToken: webhookVerifyToken,
+		APIVersion:         apiVersion,
+		IsDefaultIncoming:  req.IsDefaultIncoming,
+		IsDefaultOutgoing:  req.IsDefaultOutgoing,
+		AutoReadReceipt:    req.AutoReadReceipt,
+		Status:             "active",
+		CreatedByID:        &userID,
+		UpdatedByID:        &userID,
+	}
+
+	if req.IsDefaultIncoming {
+		a.DB.Model(&models.WhatsAppAccount{}).
+			Where("organization_id = ? AND is_default_incoming = ?", orgID, true).
+			Update("is_default_incoming", false)
+	}
+	if req.IsDefaultOutgoing {
+		a.DB.Model(&models.WhatsAppAccount{}).
+			Where("organization_id = ? AND is_default_outgoing = ?", orgID, true).
+			Update("is_default_outgoing", false)
+	}
+
+	if err := a.DB.Create(&account).Error; err != nil {
+		return nil, err
+	}
+
+	a.DB.Preload("CreatedBy").Preload("UpdatedBy").First(&account, "id = ?", account.ID)
+	return &account, nil
+}
+
 // ListAccounts returns all WhatsApp accounts for the organization
 func (a *App) ListAccounts(r *fastglue.Request) error {
 	orgID, err := a.getOrgID(r)
@@ -93,75 +160,19 @@ func (a *App) CreateAccount(r *fastglue.Request) error {
 		return nil
 	}
 
-	// Validate required fields
-	if req.Name == "" || req.PhoneID == "" || req.BusinessID == "" || req.AccessToken == "" {
-		return r.SendErrorEnvelope(fasthttp.StatusBadRequest, "Name, phone_id, business_id, and access_token are required", nil, "")
-	}
-
-	// Generate webhook verify token if not provided
-	webhookVerifyToken := req.WebhookVerifyToken
-	if webhookVerifyToken == "" {
-		webhookVerifyToken = generateVerifyToken()
-	}
-
-	// Set default API version
-	apiVersion := req.APIVersion
-	if apiVersion == "" {
-		apiVersion = "v21.0"
-	}
-
-	encKey := a.Config.App.EncryptionKey
-	encAccessToken, err := crypto.Encrypt(req.AccessToken, encKey)
+	account, err := a.persistNewWhatsAppAccount(orgID, userID, req)
 	if err != nil {
-		a.Log.Error("Failed to encrypt access token", "error", err)
-		return r.SendErrorEnvelope(fasthttp.StatusInternalServerError, "Failed to create account", nil, "")
-	}
-	encAppSecret, err := crypto.Encrypt(req.AppSecret, encKey)
-	if err != nil {
-		a.Log.Error("Failed to encrypt app secret", "error", err)
-		return r.SendErrorEnvelope(fasthttp.StatusInternalServerError, "Failed to create account", nil, "")
-	}
-
-	account := models.WhatsAppAccount{
-		OrganizationID:     orgID,
-		Name:               req.Name,
-		AppID:              req.AppID,
-		PhoneID:            req.PhoneID,
-		BusinessID:         req.BusinessID,
-		AccessToken:        encAccessToken,
-		AppSecret:          encAppSecret,
-		WebhookVerifyToken: webhookVerifyToken,
-		APIVersion:         apiVersion,
-		IsDefaultIncoming:  req.IsDefaultIncoming,
-		IsDefaultOutgoing:  req.IsDefaultOutgoing,
-		AutoReadReceipt:    req.AutoReadReceipt,
-		Status:             "active",
-		CreatedByID:        &userID,
-		UpdatedByID:        &userID,
-	}
-
-	// If this is set as default, unset other defaults
-	if req.IsDefaultIncoming {
-		a.DB.Model(&models.WhatsAppAccount{}).
-			Where("organization_id = ? AND is_default_incoming = ?", orgID, true).
-			Update("is_default_incoming", false)
-	}
-	if req.IsDefaultOutgoing {
-		a.DB.Model(&models.WhatsAppAccount{}).
-			Where("organization_id = ? AND is_default_outgoing = ?", orgID, true).
-			Update("is_default_outgoing", false)
-	}
-
-	if err := a.DB.Create(&account).Error; err != nil {
+		if errors.Is(err, errInvalidAccountRequest) {
+			return r.SendErrorEnvelope(fasthttp.StatusBadRequest, "Name, phone_id, business_id, and access_token are required", nil, "")
+		}
 		a.Log.Error("Failed to create account", "error", err)
 		return r.SendErrorEnvelope(fasthttp.StatusInternalServerError, "Failed to create account", nil, "")
 	}
 
-	a.DB.Preload("CreatedBy").Preload("UpdatedBy").First(&account, "id = ?", account.ID)
 	audit.LogAudit(a.DB, orgID, userID, audit.GetUserName(a.DB, userID),
-		"account", account.ID, models.AuditActionCreated, nil, &account)
+		"account", account.ID, models.AuditActionCreated, nil, account)
 
-	return r.SendEnvelope(accountToResponse(account))
+	return r.SendEnvelope(accountToResponse(*account))
 }
 
 // GetAccount returns a single WhatsApp account

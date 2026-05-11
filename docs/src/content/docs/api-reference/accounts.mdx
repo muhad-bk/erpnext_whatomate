@@ -101,6 +101,53 @@ POST /api/accounts
 }
 ```
 
+## Meta Embedded Signup (optional)
+
+When `[whatsapp].meta_app_id`, `meta_app_secret`, and `embedded_signup_config_id` are set in server config, the UI can load the Facebook SDK and complete onboarding without pasting an access token manually.
+
+### Get Embedded Signup public config
+
+Returns non-secret values for `FB.init` / `FB.login` (never includes `meta_app_secret`).
+
+```bash
+GET /api/integrations/meta/embedded-signup
+```
+
+### Response
+
+```json
+{
+  "status": "success",
+  "data": {
+    "enabled": true,
+    "app_id": "1234567890",
+    "config_id": "your-facebook-login-for-business-configuration-id",
+    "graph_api_version": "v25.0"
+  }
+}
+```
+
+### Create account via Embedded Signup
+
+Called by the browser after Meta returns an OAuth `code` (from `FB.login`) **and** a `WA_EMBEDDED_SIGNUP` message with `phone_number_id` and `waba_id`. The server exchanges the code for an access token using `meta_app_secret`, then creates the same account record as `POST /api/accounts`.
+
+```bash
+POST /api/accounts/embedded-signup
+```
+
+### Request Body
+
+```json
+{
+  "code": "authorization-code-from-fb-login",
+  "phone_id": "customer-phone-number-id",
+  "business_id": "customer-waba-id",
+  "name": "Optional display name"
+}
+```
+
+Returns **404** if Embedded Signup is not configured on the server.
+
 ## Update Account
 
 Update account settings.

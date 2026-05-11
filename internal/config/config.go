@@ -100,6 +100,10 @@ type WhatsAppConfig struct {
 	WebhookVerifyToken string `koanf:"webhook_verify_token"`
 	APIVersion         string `koanf:"api_version"`
 	BaseURL            string `koanf:"base_url"` // Meta Graph API base URL
+	// Meta Embedded Signup (Facebook Login for Business). All three required to enable the UI + POST /api/accounts/embedded-signup.
+	MetaAppID              string `koanf:"meta_app_id"`
+	MetaAppSecret          string `koanf:"meta_app_secret"`            // server-only; used to exchange OAuth code for access token
+	EmbeddedSignupConfigID string `koanf:"embedded_signup_config_id"` // Facebook Login for Business configuration ID
 }
 
 type AIConfig struct {

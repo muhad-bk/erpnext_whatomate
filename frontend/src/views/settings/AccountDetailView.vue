@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
@@ -257,13 +257,205 @@ async function copyToClipboard(text: string) {
   }
 }
 
+// --- Meta Embedded Signup (optional; enabled when server [whatsapp] meta_* + config_id are set) ---
+interface MetaEmbeddedPublicConfig {
+  enabled: boolean
+  app_id: string
+  config_id: string
+  graph_api_version: string
+}
+
+interface PendingEmbeddedSignup {
+  code?: string
+  phone_id?: string
+  business_id?: string
+  event?: string
+}
+
+const embeddedCfg = ref<MetaEmbeddedPublicConfig | null>(null)
+const embeddedSdkLoading = ref(false)
+const embeddedFlowLoading = ref(false)
+const embeddedCompleting = ref(false)
+const pendingEmbedded = ref<PendingEmbeddedSignup>({})
+let fbMessageHandler: ((ev: MessageEvent) => void) | null = null
+
+function initFacebookSDK(cfg: MetaEmbeddedPublicConfig) {
+  const FB = (window as unknown as { FB?: { init: (o: Record<string, unknown>) => void } }).FB
+  if (!FB) return
+  FB.init({
+    appId: cfg.app_id,
+    cookie: true,
+    xfbml: true,
+    version: cfg.graph_api_version || 'v18.0',
+    autoLogAppEvents: true,
+  })
+  embeddedSdkLoading.value = false
+}
+
+async function loadFacebookSDK(cfg: MetaEmbeddedPublicConfig): Promise<void> {
+  const w = window as unknown as { FB?: { init: (o: Record<string, unknown>) => void }; fbAsyncInit?: () => void }
+  if (w.FB) {
+    initFacebookSDK(cfg)
+    return
+  }
+  embeddedSdkLoading.value = true
+  await new Promise<void>((resolve, reject) => {
+    const prior = w.fbAsyncInit
+    w.fbAsyncInit = () => {
+      if (typeof prior === 'function') prior()
+      initFacebookSDK(cfg)
+      resolve()
+    }
+    if (document.getElementById('facebook-jssdk')) {
+      const deadline = Date.now() + 20000
+      const poll = () => {
+        if (w.FB) {
+          initFacebookSDK(cfg)
+          resolve()
+        } else if (Date.now() > deadline) {
+          embeddedSdkLoading.value = false
+          reject(new Error('timeout'))
+        } else {
+          setTimeout(poll, 50)
+        }
+      }
+      poll()
+      return
+    }
+    const s = document.createElement('script')
+    s.id = 'facebook-jssdk'
+    s.async = true
+    s.defer = true
+    s.crossOrigin = 'anonymous'
+    s.src = 'https://connect.facebook.net/en_US/sdk.js'
+    s.onerror = () => {
+      embeddedSdkLoading.value = false
+      reject(new Error('sdk'))
+    }
+    document.body.appendChild(s)
+  })
+}
+
+function installEmbeddedMessageListener() {
+  fbMessageHandler = (event: MessageEvent) => {
+    if (typeof event.origin !== 'string' || !event.origin.endsWith('facebook.com')) return
+    try {
+      const raw = event.data
+      const data = typeof raw === 'string' ? JSON.parse(raw) : raw
+      if (!data || data.type !== 'WA_EMBEDDED_SIGNUP') return
+      pendingEmbedded.value = {
+        ...pendingEmbedded.value,
+        event: data.event as string,
+        phone_id: data.data?.phone_number_id as string | undefined,
+        business_id: data.data?.waba_id as string | undefined,
+      }
+      void tryCompleteEmbeddedSignup()
+    } catch {
+      /* ignore non-JSON postMessages */
+    }
+  }
+  window.addEventListener('message', fbMessageHandler)
+}
+
+function removeEmbeddedMessageListener() {
+  if (fbMessageHandler) {
+    window.removeEventListener('message', fbMessageHandler)
+    fbMessageHandler = null
+  }
+}
+
+async function fetchEmbeddedSignupConfig() {
+  if (!isNew.value || !canWrite.value) return
+  try {
+    const response = await api.get('/integrations/meta/embedded-signup')
+    const d = (response.data.data ?? response.data) as MetaEmbeddedPublicConfig
+    embeddedCfg.value = d
+    if (d.enabled) {
+      await loadFacebookSDK(d)
+    }
+  } catch {
+    embeddedCfg.value = null
+  }
+}
+
+async function tryCompleteEmbeddedSignup() {
+  const p = pendingEmbedded.value
+  if (!p.code || !p.phone_id || !p.business_id) return
+  const ev = p.event || ''
+  if (ev === 'CANCEL' || ev === 'ERROR') return
+  if (!ev.startsWith('FINISH')) return
+  if (!p.phone_id.trim()) {
+    toast.error(t('accounts.embeddedMissingPhone'))
+    pendingEmbedded.value = {}
+    return
+  }
+  if (embeddedCompleting.value) return
+  embeddedCompleting.value = true
+  try {
+    embeddedFlowLoading.value = true
+    const nameTrim = form.value.name.trim()
+    const payload: Record<string, string> = {
+      code: p.code,
+      phone_id: p.phone_id.trim(),
+      business_id: p.business_id.trim(),
+    }
+    if (nameTrim) payload.name = nameTrim
+    const response = await api.post('/accounts/embedded-signup', payload)
+    const created = response.data.data || response.data
+    hasChanges.value = false
+    pendingEmbedded.value = {}
+    toast.success(t('common.createdSuccess', { resource: t('resources.Account') }))
+    router.replace(`/settings/accounts/${created.id}`)
+  } catch (e) {
+    toast.error(getErrorMessage(e, t('accounts.embeddedFailed')))
+  } finally {
+    embeddedFlowLoading.value = false
+    embeddedCompleting.value = false
+  }
+}
+
+function launchEmbeddedSignup() {
+  const cfg = embeddedCfg.value
+  if (!cfg?.enabled || !canWrite.value) return
+  const w = window as unknown as { FB?: { login: (cb: (r: unknown) => void, opts: Record<string, unknown>) => void } }
+  if (!w.FB) {
+    toast.error(t('accounts.embeddedSdkNotReady'))
+    return
+  }
+  pendingEmbedded.value = {}
+  embeddedFlowLoading.value = true
+  w.FB.login(
+    (response: { authResponse?: { code?: string }; status?: string }) => {
+      embeddedFlowLoading.value = false
+      if (response.authResponse?.code) {
+        pendingEmbedded.value.code = response.authResponse.code
+        void tryCompleteEmbeddedSignup()
+      } else if (response.status === 'not_authorized' || response.status === 'unknown') {
+        toast.info(t('accounts.embeddedCancelled'))
+      }
+    },
+    {
+      config_id: cfg.config_id,
+      response_type: 'code',
+      override_default_response_type: true,
+      extras: { setup: {} },
+    }
+  )
+}
+
 onMounted(async () => {
   if (isNew.value) {
     isLoading.value = false
     hasChanges.value = false
+    installEmbeddedMessageListener()
+    await fetchEmbeddedSignupConfig()
   } else {
     await loadAccount()
   }
+})
+
+onUnmounted(() => {
+  removeEmbeddedMessageListener()
 })
 </script>
 
@@ -324,6 +516,31 @@ onMounted(async () => {
           <X class="h-4 w-4" />
           <span class="text-sm">{{ testResult.error }}</span>
         </div>
+      </CardContent>
+    </Card>
+
+    <!-- Meta Embedded Signup (new account only, when server configures meta_app_id + secret + config_id) -->
+    <Card v-if="isNew && embeddedCfg?.enabled && canWrite">
+      <CardHeader class="pb-3">
+        <CardTitle class="text-sm font-medium">{{ $t('accounts.embeddedTitle') }}</CardTitle>
+        <p class="text-xs text-muted-foreground mt-1">{{ $t('accounts.embeddedDescription') }}</p>
+      </CardHeader>
+      <CardContent>
+        <Button
+          type="button"
+          class="bg-[#1877F2] hover:bg-[#166FE5] text-white border-0"
+          :disabled="embeddedSdkLoading || embeddedFlowLoading"
+          @click="launchEmbeddedSignup"
+        >
+          <Loader2 v-if="embeddedSdkLoading || embeddedFlowLoading" class="h-4 w-4 animate-spin mr-2" />
+          {{
+            embeddedSdkLoading
+              ? $t('accounts.embeddedSdkLoading')
+              : embeddedFlowLoading
+                ? $t('accounts.embeddedLoading')
+                : $t('accounts.embeddedConnect')
+          }}
+        </Button>
       </CardContent>
     </Card>
 
