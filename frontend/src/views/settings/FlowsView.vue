@@ -330,39 +330,95 @@ function sanitizeScreensForMeta(screens: any[]): any[] {
 
     <!-- Create Flow Dialog -->
     <Dialog v-model:open="showCreateDialog">
-      <DialogContent class="max-w-6xl h-[85vh] flex flex-col">
-        <DialogHeader><DialogTitle>{{ $t('flows.createWhatsAppFlow') }}</DialogTitle><DialogDescription>{{ $t('flows.createFlowDesc') }}</DialogDescription></DialogHeader>
-        <div class="flex gap-4 py-2 border-b">
-          <div class="flex items-center gap-2">
-            <Label class="text-sm whitespace-nowrap">{{ $t('flows.account') }}:</Label>
-            <Select v-model="formData.whatsapp_account" :disabled="isCreating"><SelectTrigger class="w-[180px]"><SelectValue :placeholder="$t('flows.selectAccount')" /></SelectTrigger><SelectContent><SelectItem v-for="account in accounts" :key="account.id" :value="account.name">{{ account.name }}</SelectItem></SelectContent></Select>
+      <DialogContent
+        class="flex flex-col w-full max-w-[min(1400px,96vw)] gap-0 overflow-hidden p-4 min-h-0 h-[min(85vh,90dvh)] max-h-[90dvh] sm:max-w-7xl sm:p-6"
+      >
+        <DialogHeader class="shrink-0 space-y-1 pb-2 text-left">
+          <DialogTitle>{{ $t('flows.createWhatsAppFlow') }}</DialogTitle>
+          <DialogDescription>{{ $t('flows.createFlowDesc') }}</DialogDescription>
+        </DialogHeader>
+        <div class="shrink-0 flex flex-wrap items-end gap-x-4 gap-y-3 border-b border-border py-2">
+          <div class="flex min-w-[min(100%,12rem)] flex-1 basis-[14rem] items-center gap-2">
+            <Label class="text-sm shrink-0 whitespace-nowrap">{{ $t('flows.account') }}:</Label>
+            <Select v-model="formData.whatsapp_account" :disabled="isCreating">
+              <SelectTrigger class="w-full min-w-0">
+                <SelectValue :placeholder="$t('flows.selectAccount')" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="account in accounts" :key="account.id" :value="account.name">{{ account.name }}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <div class="flex items-center gap-2"><Label class="text-sm whitespace-nowrap">{{ $t('flows.name') }}:</Label><Input v-model="formData.name" :placeholder="$t('flows.flowName')" class="w-48" :disabled="isCreating" /></div>
-          <div class="flex items-center gap-2">
-            <Label class="text-sm whitespace-nowrap">{{ $t('flows.category') }}:</Label>
-            <Select v-model="formData.category" :disabled="isCreating"><SelectTrigger class="w-[180px]"><SelectValue :placeholder="$t('flows.selectCategory')" /></SelectTrigger><SelectContent><SelectItem v-for="cat in flowCategories" :key="cat.value" :value="cat.value">{{ cat.label }}</SelectItem></SelectContent></Select>
+          <div class="flex min-w-[min(100%,12rem)] flex-1 basis-[12rem] items-center gap-2">
+            <Label class="text-sm shrink-0 whitespace-nowrap">{{ $t('flows.name') }}:</Label>
+            <Input v-model="formData.name" :placeholder="$t('flows.flowName')" class="min-w-0 flex-1" :disabled="isCreating" />
+          </div>
+          <div class="flex min-w-[min(100%,12rem)] flex-1 basis-[14rem] items-center gap-2">
+            <Label class="text-sm shrink-0 whitespace-nowrap">{{ $t('flows.category') }}:</Label>
+            <Select v-model="formData.category" :disabled="isCreating">
+              <SelectTrigger class="w-full min-w-0">
+                <SelectValue :placeholder="$t('flows.selectCategory')" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="cat in flowCategories" :key="cat.value" :value="cat.value">{{ cat.label }}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
-        <div class="flex-1 overflow-hidden py-4"><FlowBuilder v-model="flowBuilderData" /></div>
-        <DialogFooter><Button variant="outline" size="sm" @click="showCreateDialog = false" :disabled="isCreating">{{ $t('common.cancel') }}</Button><Button size="sm" @click="createFlow" :disabled="isCreating"><Loader2 v-if="isCreating" class="h-4 w-4 mr-2 animate-spin" />{{ $t('flows.createFlow') }}</Button></DialogFooter>
+        <div class="min-h-0 flex-1 overflow-hidden py-3">
+          <FlowBuilder v-model="flowBuilderData" />
+        </div>
+        <DialogFooter class="shrink-0 border-t border-border pt-3">
+          <Button variant="outline" size="sm" @click="showCreateDialog = false" :disabled="isCreating">{{ $t('common.cancel') }}</Button>
+          <Button size="sm" @click="createFlow" :disabled="isCreating">
+            <Loader2 v-if="isCreating" class="h-4 w-4 mr-2 animate-spin" />{{ $t('flows.createFlow') }}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
 
     <!-- Edit Flow Dialog -->
     <Dialog v-model:open="showEditDialog">
-      <DialogContent class="max-w-6xl h-[85vh] flex flex-col">
-        <DialogHeader><DialogTitle>{{ $t('flows.editWhatsAppFlow') }}</DialogTitle><DialogDescription>{{ $t('flows.editFlowDesc') }}</DialogDescription></DialogHeader>
-        <div class="flex gap-4 py-2 border-b">
-          <div class="flex items-center gap-2"><Label class="text-sm whitespace-nowrap">{{ $t('flows.account') }}:</Label><span class="text-sm text-muted-foreground">{{ flowToEdit?.whatsapp_account }}</span></div>
-          <div class="flex items-center gap-2"><Label class="text-sm whitespace-nowrap">{{ $t('flows.name') }}:</Label><Input v-model="editFormData.name" :placeholder="$t('flows.flowName')" class="w-48" :disabled="isUpdating" /></div>
-          <div class="flex items-center gap-2">
-            <Label class="text-sm whitespace-nowrap">{{ $t('flows.category') }}:</Label>
-            <Select v-model="editFormData.category" :disabled="isUpdating"><SelectTrigger class="w-[180px]"><SelectValue :placeholder="$t('flows.selectCategory')" /></SelectTrigger><SelectContent><SelectItem v-for="cat in flowCategories" :key="cat.value" :value="cat.value">{{ cat.label }}</SelectItem></SelectContent></Select>
+      <DialogContent
+        class="flex flex-col w-full max-w-[min(1400px,96vw)] gap-0 overflow-hidden p-4 min-h-0 h-[min(85vh,90dvh)] max-h-[90dvh] sm:max-w-7xl sm:p-6"
+      >
+        <DialogHeader class="shrink-0 space-y-1 pb-2 text-left">
+          <DialogTitle>{{ $t('flows.editWhatsAppFlow') }}</DialogTitle>
+          <DialogDescription>{{ $t('flows.editFlowDesc') }}</DialogDescription>
+        </DialogHeader>
+        <div class="shrink-0 flex flex-wrap items-end gap-x-4 gap-y-3 border-b border-border py-2">
+          <div class="flex min-w-[min(100%,12rem)] flex-1 basis-[14rem] items-center gap-2">
+            <Label class="text-sm shrink-0 whitespace-nowrap">{{ $t('flows.account') }}:</Label>
+            <span class="min-w-0 truncate text-sm text-muted-foreground">{{ flowToEdit?.whatsapp_account }}</span>
           </div>
-          <div v-if="flowToEdit?.meta_flow_id" class="flex items-center gap-2 ml-auto"><Badge variant="outline">Meta ID: {{ flowToEdit.meta_flow_id }}</Badge></div>
+          <div class="flex min-w-[min(100%,12rem)] flex-1 basis-[12rem] items-center gap-2">
+            <Label class="text-sm shrink-0 whitespace-nowrap">{{ $t('flows.name') }}:</Label>
+            <Input v-model="editFormData.name" :placeholder="$t('flows.flowName')" class="min-w-0 flex-1" :disabled="isUpdating" />
+          </div>
+          <div class="flex min-w-[min(100%,12rem)] flex-1 basis-[14rem] items-center gap-2">
+            <Label class="text-sm shrink-0 whitespace-nowrap">{{ $t('flows.category') }}:</Label>
+            <Select v-model="editFormData.category" :disabled="isUpdating">
+              <SelectTrigger class="w-full min-w-0">
+                <SelectValue :placeholder="$t('flows.selectCategory')" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="cat in flowCategories" :key="cat.value" :value="cat.value">{{ cat.label }}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div v-if="flowToEdit?.meta_flow_id" class="flex w-full shrink-0 items-center sm:ml-auto sm:w-auto">
+            <Badge variant="outline" class="truncate">Meta ID: {{ flowToEdit.meta_flow_id }}</Badge>
+          </div>
         </div>
-        <div class="flex-1 overflow-hidden py-4"><FlowBuilder v-model="editFlowBuilderData" /></div>
-        <DialogFooter><Button variant="outline" size="sm" @click="showEditDialog = false" :disabled="isUpdating">{{ $t('common.cancel') }}</Button><Button size="sm" @click="updateFlow" :disabled="isUpdating"><Loader2 v-if="isUpdating" class="h-4 w-4 mr-2 animate-spin" />{{ $t('flows.saveChanges') }}</Button></DialogFooter>
+        <div class="min-h-0 flex-1 overflow-hidden py-3">
+          <FlowBuilder v-model="editFlowBuilderData" />
+        </div>
+        <DialogFooter class="shrink-0 border-t border-border pt-3">
+          <Button variant="outline" size="sm" @click="showEditDialog = false" :disabled="isUpdating">{{ $t('common.cancel') }}</Button>
+          <Button size="sm" @click="updateFlow" :disabled="isUpdating">
+            <Loader2 v-if="isUpdating" class="h-4 w-4 mr-2 animate-spin" />{{ $t('flows.saveChanges') }}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
 

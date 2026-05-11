@@ -348,9 +348,9 @@ defineExpose({
 </script>
 
 <template>
-  <div class="flex h-full gap-4">
+  <div class="flex h-full min-h-0 min-w-0 w-full flex-1 gap-4">
     <!-- Screens Panel -->
-    <Card class="w-64 flex-shrink-0 flex flex-col overflow-hidden">
+    <Card class="w-64 shrink-0 flex flex-col overflow-hidden">
       <CardHeader class="py-3 px-4">
         <div class="flex items-center justify-between">
           <CardTitle class="text-sm font-medium flex items-center gap-2">
@@ -363,7 +363,7 @@ defineExpose({
         </div>
       </CardHeader>
       <Separator />
-      <ScrollArea class="flex-1">
+      <ScrollArea class="min-h-0 flex-1">
         <div class="p-2 space-y-1">
           <div
             v-for="(screen, index) in screens"
@@ -397,7 +397,7 @@ defineExpose({
     </Card>
 
     <!-- Screen Editor -->
-    <Card class="flex-1 flex flex-col overflow-hidden">
+    <Card class="min-w-0 flex-1 flex flex-col overflow-hidden">
       <CardHeader class="py-3 px-4 flex-shrink-0">
         <div class="flex items-center justify-between">
           <div v-if="selectedScreen" class="flex items-center gap-2">
@@ -413,9 +413,9 @@ defineExpose({
       </CardHeader>
       <Separator />
 
-      <div v-if="selectedScreen" class="flex-1 flex overflow-hidden">
+      <div v-if="selectedScreen" class="min-h-0 min-w-0 flex-1 flex overflow-hidden">
         <!-- Component Palette -->
-        <ScrollArea class="w-48 border-r flex-shrink-0">
+        <ScrollArea class="w-48 shrink-0 border-r">
           <div class="p-3">
             <p class="text-xs font-medium text-muted-foreground mb-2">Add Components</p>
             <div class="grid grid-cols-2 gap-1">
@@ -435,7 +435,7 @@ defineExpose({
         </ScrollArea>
 
         <!-- Screen Preview -->
-        <ScrollArea class="flex-1">
+        <ScrollArea class="min-h-0 min-w-0 flex-1">
           <div class="p-4">
             <div class="max-w-sm mx-auto bg-muted/30 rounded-lg p-4">
             <h3 class="text-lg font-semibold mb-4">{{ selectedScreen.title }}</h3>
@@ -576,7 +576,7 @@ defineExpose({
         </ScrollArea>
       </div>
 
-      <div v-else class="flex-1 flex items-center justify-center text-muted-foreground">
+      <div v-else class="min-h-0 flex-1 flex items-center justify-center text-muted-foreground">
         <div class="text-center">
           <Layers class="h-12 w-12 mx-auto mb-4 opacity-50" />
           <p>Add a screen to get started</p>
@@ -589,7 +589,7 @@ defineExpose({
     </Card>
 
     <!-- Properties Panel -->
-    <Card class="w-72 flex-shrink-0 flex flex-col overflow-hidden">
+    <Card class="w-72 shrink-0 flex flex-col overflow-hidden">
       <CardHeader class="py-3 px-4 flex-shrink-0">
         <CardTitle class="text-sm font-medium flex items-center gap-2">
           <Settings2 class="h-4 w-4" />
@@ -597,7 +597,7 @@ defineExpose({
         </CardTitle>
       </CardHeader>
       <Separator />
-      <ScrollArea class="flex-1">
+      <ScrollArea class="min-h-0 flex-1">
         <div v-if="selectedComponent" class="p-4 space-y-4">
           <div class="flex items-center justify-between">
             <Badge>{{ getComponentLabel(selectedComponent) }}</Badge>
