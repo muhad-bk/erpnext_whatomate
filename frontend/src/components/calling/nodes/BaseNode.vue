@@ -16,7 +16,7 @@ const gradientMap: Record<string, string> = {
   'bg-blue-600': 'from-blue-600 to-blue-500',
   'bg-purple-600': 'from-purple-600 to-purple-500',
   'bg-orange-600': 'from-orange-600 to-amber-500',
-  'bg-green-600': 'from-green-600 to-emerald-500',
+  'bg-green-600': 'from-primary to-blue-600',
   'bg-amber-600': 'from-amber-600 to-yellow-500',
   'bg-red-600': 'from-red-600 to-rose-500',
   'bg-cyan-600': 'from-cyan-600 to-cyan-500',

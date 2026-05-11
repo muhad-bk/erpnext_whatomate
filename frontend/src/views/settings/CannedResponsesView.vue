@@ -131,8 +131,8 @@ function getCategoryLabel(category: string): string { return getLabelFromValue(C
 </script>
 
 <template>
-  <div class="flex flex-col h-full bg-[#0a0a0b] light:bg-gray-50">
-    <PageHeader :title="$t('cannedResponses.title')" :subtitle="$t('cannedResponses.subtitle')" :icon="MessageSquareText" icon-gradient="bg-gradient-to-br from-teal-500 to-emerald-600 shadow-teal-500/20">
+  <div class="flex flex-col h-full bg-background">
+    <PageHeader :title="$t('cannedResponses.title')" :subtitle="$t('cannedResponses.subtitle')" :icon="MessageSquareText" icon-gradient="bg-gradient-to-br from-blue-600 to-primary shadow-primary/20">
       <template #actions>
         <Button variant="outline" size="sm" @click="openCreateDialog"><Plus class="h-4 w-4 mr-2" />{{ $t('cannedResponses.addResponse') }}</Button>
       </template>
@@ -200,7 +200,7 @@ function getCategoryLabel(category: string): string { return getLabelFromValue(C
                   <span class="text-muted-foreground">{{ response.usage_count }}</span>
                 </template>
                 <template #cell-status="{ item: response }">
-                  <Badge v-if="response.is_active" class="bg-emerald-500/20 text-emerald-400 border-transparent text-xs">{{ $t('common.active') }}</Badge>
+                  <Badge v-if="response.is_active" class="bg-primary/20 text-primary border-transparent text-xs">{{ $t('common.active') }}</Badge>
                   <Badge v-else variant="secondary" class="text-xs">{{ $t('common.inactive') }}</Badge>
                 </template>
                 <template #cell-actions="{ item: response }">

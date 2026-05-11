@@ -124,7 +124,7 @@ const statCards = computed(() => [
 </script>
 
 <template>
-  <div class="flex flex-col h-full bg-[#0a0a0b] light:bg-gray-50">
+  <div class="flex flex-col h-full bg-background">
     <PageHeader
       :title="$t('chatbot.title')"
       :description="$t('chatbot.subtitle')"
@@ -134,7 +134,7 @@ const statCards = computed(() => [
       <template #actions>
         <div class="flex items-center gap-3">
           <Badge
-            :class="settings.enabled ? 'bg-emerald-500/20 text-emerald-400 light:bg-emerald-100 light:text-emerald-700' : 'bg-white/[0.08] text-white/50 light:bg-gray-100 light:text-gray-500'"
+            :class="settings.enabled ? 'bg-primary/20 text-primary light:bg-primary/15 light:text-primary' : 'bg-white/[0.08] text-white/50 light:bg-gray-100 light:text-gray-500'"
           >
             {{ settings.enabled ? $t('chatbot.active') : $t('chatbot.inactive') }}
           </Badge>
@@ -143,7 +143,7 @@ const statCards = computed(() => [
             size="sm"
             @click="showToggleConfirm = true"
             :disabled="isToggling"
-            :class="settings.enabled ? 'border-red-500/50 text-red-400 hover:bg-red-500/10' : 'border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/10'"
+            :class="settings.enabled ? 'border-red-500/50 text-red-400 hover:bg-red-500/10' : 'border-primary/50 text-primary hover:bg-primary/10'"
           >
             <Power class="h-4 w-4 mr-2" />
             {{ settings.enabled ? $t('chatbot.disable') : $t('chatbot.enable') }}
@@ -198,14 +198,14 @@ const statCards = computed(() => [
                 <div :class="[
                   'h-10 w-10 rounded-lg flex items-center justify-center',
                   card.key === 'total_sessions' ? 'bg-blue-500/20' : '',
-                  card.key === 'active_sessions' ? 'bg-emerald-500/20' : '',
+                  card.key === 'active_sessions' ? 'bg-primary/20' : '',
                   card.key === 'messages_handled' ? 'bg-purple-500/20' : '',
                   card.key === 'ai_responses' ? 'bg-orange-500/20' : ''
                 ]">
                   <component :is="card.icon" :class="[
                     'h-5 w-5',
                     card.key === 'total_sessions' ? 'text-blue-400' : '',
-                    card.key === 'active_sessions' ? 'text-emerald-400' : '',
+                    card.key === 'active_sessions' ? 'text-primary' : '',
                     card.key === 'messages_handled' ? 'text-purple-400' : '',
                     card.key === 'ai_responses' ? 'text-orange-400' : ''
                   ]" />
@@ -320,7 +320,7 @@ const statCards = computed(() => [
               <div class="space-y-2">
                 <h4 class="font-medium text-sm text-white/70 light:text-gray-700">{{ $t('chatbot.aiProvider') }}</h4>
                 <div class="flex items-center gap-2">
-                  <Badge v-if="settings.ai_enabled" class="bg-emerald-500/20 text-emerald-400 light:bg-emerald-100 light:text-emerald-700">
+                  <Badge v-if="settings.ai_enabled" class="bg-primary/20 text-primary light:bg-primary/15 light:text-primary">
                     {{ settings.ai_provider || $t('chatbot.notConfigured') }}
                   </Badge>
                   <Badge v-else class="bg-white/[0.08] text-white/50 light:bg-gray-100 light:text-gray-500">{{ $t('chatbot.disabled') }}</Badge>

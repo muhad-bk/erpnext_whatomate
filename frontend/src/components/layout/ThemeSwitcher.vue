@@ -11,7 +11,7 @@ const { colorMode, setColorMode } = useColorMode()
     <Button
       variant="ghost"
       size="icon"
-      class="h-7 w-7"
+      class="h-9 w-9 min-h-[44px] min-w-[44px] sm:h-7 sm:w-7 sm:min-h-0 sm:min-w-0"
       :class="colorMode === 'light' && 'bg-accent'"
       :aria-checked="colorMode === 'light'"
       aria-label="Light theme"
@@ -23,7 +23,7 @@ const { colorMode, setColorMode } = useColorMode()
     <Button
       variant="ghost"
       size="icon"
-      class="h-7 w-7"
+      class="h-9 w-9 min-h-[44px] min-w-[44px] sm:h-7 sm:w-7 sm:min-h-0 sm:min-w-0"
       :class="colorMode === 'dark' && 'bg-accent'"
       :aria-checked="colorMode === 'dark'"
       aria-label="Dark theme"
@@ -35,7 +35,7 @@ const { colorMode, setColorMode } = useColorMode()
     <Button
       variant="ghost"
       size="icon"
-      class="h-7 w-7"
+      class="h-9 w-9 min-h-[44px] min-w-[44px] sm:h-7 sm:w-7 sm:min-h-0 sm:min-w-0"
       :class="colorMode === 'system' && 'bg-accent'"
       :aria-checked="colorMode === 'system'"
       aria-label="System theme"

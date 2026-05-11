@@ -103,22 +103,22 @@ const handleLogout = async () => {
 </script>
 
 <template>
-  <div class="flex h-screen bg-[#0a0a0b] light:bg-gray-50">
+  <div class="flex h-screen min-h-0 bg-background">
     <!-- Skip link for accessibility -->
     <a href="#main-content" class="skip-link">{{ $t('nav.skipToMain') }}</a>
 
     <!-- Mobile header -->
-    <header class="fixed top-0 left-0 right-0 z-50 flex h-12 items-center justify-between border-b border-white/[0.08] light:border-gray-200 bg-[#0a0a0b]/95 light:bg-white/95 backdrop-blur-sm px-3 md:hidden">
+    <header class="fixed top-0 left-0 right-0 z-50 flex min-h-12 items-center justify-between border-b border-border bg-background/95 backdrop-blur-sm px-3 pt-[env(safe-area-inset-top)] md:hidden">
       <RouterLink to="/" class="flex items-center gap-2">
-        <div class="h-7 w-7 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-          <MessageSquare class="h-4 w-4 text-white" />
+        <div class="h-7 w-7 rounded-lg bg-gradient-to-br from-primary to-blue-700 flex items-center justify-center shadow-md shadow-primary/20">
+          <MessageSquare class="h-4 w-4 text-primary-foreground" />
         </div>
-        <span class="font-semibold text-sm text-white light:text-gray-900">Whatomate</span>
+        <span class="font-semibold text-sm text-foreground">Whatomate</span>
       </RouterLink>
       <Button
         variant="ghost"
         size="icon"
-        class="h-8 w-8 text-white/70 hover:text-white hover:bg-white/[0.08] light:text-gray-600 light:hover:text-gray-900 light:hover:bg-gray-100"
+        class="h-10 w-10 min-h-[44px] min-w-[44px] text-muted-foreground hover:text-foreground hover:bg-muted"
         aria-label="Toggle menu"
         :aria-expanded="isMobileMenuOpen"
         @click="isMobileMenuOpen = !isMobileMenuOpen"
@@ -138,7 +138,7 @@ const handleLogout = async () => {
     <!-- Sidebar -->
     <aside
       :class="[
-        'flex flex-col border-r border-white/[0.08] light:border-gray-200 bg-[#0a0a0b] light:bg-white transition-all duration-300',
+        'flex flex-col border-r border-border bg-card text-card-foreground transition-all duration-300',
         'fixed inset-y-0 left-0 z-40 md:relative',
         'transform md:transform-none',
         isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
@@ -148,14 +148,14 @@ const handleLogout = async () => {
       aria-label="Main navigation"
     >
       <!-- Logo (hidden on mobile, shown in header instead) -->
-      <div class="hidden md:flex h-12 items-center justify-between px-3 border-b border-white/[0.08] light:border-gray-200">
+      <div class="hidden md:flex h-12 items-center justify-between px-3 border-b border-border">
         <RouterLink to="/" class="flex items-center gap-2">
-          <div class="h-7 w-7 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-            <MessageSquare class="h-4 w-4 text-white" />
+          <div class="h-7 w-7 rounded-lg bg-gradient-to-br from-primary to-blue-700 flex items-center justify-center shadow-md shadow-primary/20">
+            <MessageSquare class="h-4 w-4 text-primary-foreground" />
           </div>
           <span
             v-if="!isCollapsed"
-            class="font-semibold text-sm text-white light:text-gray-900"
+            class="font-semibold text-sm text-foreground"
           >
             Whatomate
           </span>
@@ -163,7 +163,7 @@ const handleLogout = async () => {
         <Button
           variant="ghost"
           size="icon"
-          class="h-7 w-7 text-white/50 hover:text-white hover:bg-white/[0.08] light:text-gray-400 light:hover:text-gray-900 light:hover:bg-gray-100"
+          class="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted"
           :aria-label="isCollapsed ? $t('nav.expandSidebar') : $t('nav.collapseSidebar')"
           :aria-expanded="!isCollapsed"
           @click="toggleSidebar"
@@ -185,11 +185,11 @@ const handleLogout = async () => {
             <!-- Section header -->
             <div
               v-if="section.label && !isCollapsed"
-              :class="['px-2.5 pt-4 pb-1 text-[10px] font-semibold uppercase tracking-wider text-white/30 light:text-gray-400', sIdx === 0 && 'pt-1']"
+              :class="['px-2.5 pt-4 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground', sIdx === 0 && 'pt-1']"
             >
               {{ $t(section.label) }}
             </div>
-            <div v-else-if="sIdx > 0" :class="['my-2 mx-2.5 border-t border-white/[0.06] light:border-gray-200', isCollapsed && 'mx-1']" />
+            <div v-else-if="sIdx > 0" :class="['my-2 mx-2.5 border-t border-border', isCollapsed && 'mx-1']" />
 
             <!-- Section items -->
             <div class="space-y-0.5">
@@ -199,8 +199,8 @@ const handleLogout = async () => {
                   :class="[
                     'nav-active-indicator btn-press flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-medium transition-all duration-200',
                     item.active
-                      ? 'bg-white/[0.08] text-white light:bg-gray-100 light:text-gray-900'
-                      : 'text-white/50 hover:text-white hover:bg-white/[0.06] light:text-gray-500 light:hover:text-gray-900 light:hover:bg-gray-50',
+                      ? 'bg-muted text-foreground'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/80',
                     isCollapsed && 'md:justify-center md:px-2'
                   ]"
                   :data-active="item.active"
@@ -221,8 +221,8 @@ const handleLogout = async () => {
                     :class="[
                       'flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-[13px] font-medium transition-all duration-200 ml-4',
                       route.path === child.path
-                        ? 'bg-white/[0.06] text-white light:bg-gray-100 light:text-gray-900'
-                        : 'text-white/40 hover:text-white/70 hover:bg-white/[0.04] light:text-gray-400 light:hover:text-gray-700 light:hover:bg-gray-50'
+                        ? 'bg-muted text-foreground'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
                     ]"
                     role="menuitem"
                     :aria-current="route.path === child.path ? 'page' : undefined"
@@ -239,7 +239,7 @@ const handleLogout = async () => {
       </ScrollArea>
 
       <!-- Bottom-pinned navigation (Settings) -->
-      <div v-if="bottomSections.length > 0" class="border-t border-white/[0.06] light:border-gray-200 px-2 py-2">
+      <div v-if="bottomSections.length > 0" class="border-t border-border px-2 py-2">
         <template v-for="section in bottomSections" :key="section.label">
           <template v-for="item in section.items" :key="item.path">
             <RouterLink
@@ -247,8 +247,8 @@ const handleLogout = async () => {
               :class="[
                 'nav-active-indicator btn-press flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] font-medium transition-all duration-200',
                 item.active
-                  ? 'bg-white/[0.08] text-white light:bg-gray-100 light:text-gray-900'
-                  : 'text-white/50 hover:text-white hover:bg-white/[0.06] light:text-gray-500 light:hover:text-gray-900 light:hover:bg-gray-50',
+                  ? 'bg-muted text-foreground'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/80',
                 isCollapsed && 'md:justify-center md:px-2'
               ]"
               :data-active="item.active"
@@ -268,8 +268,8 @@ const handleLogout = async () => {
                 :class="[
                   'flex items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-[13px] font-medium transition-all duration-200 ml-4',
                   route.path === child.path
-                    ? 'bg-white/[0.06] text-white light:bg-gray-100 light:text-gray-900'
-                    : 'text-white/40 hover:text-white/70 hover:bg-white/[0.04] light:text-gray-400 light:hover:text-gray-700 light:hover:bg-gray-50'
+                    ? 'bg-muted text-foreground'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
                 ]"
                 role="menuitem"
                 :aria-current="route.path === child.path ? 'page' : undefined"
@@ -288,7 +288,7 @@ const handleLogout = async () => {
     </aside>
 
     <!-- Main content -->
-    <main id="main-content" class="flex-1 overflow-hidden pt-12 md:pt-0 bg-[#0a0a0b] light:bg-gray-50" role="main">
+    <main id="main-content" class="flex-1 min-h-0 overflow-hidden pt-[calc(3rem+env(safe-area-inset-top))] md:pt-0 bg-background" role="main">
       <RouterView v-slot="{ Component, route: viewRoute }">
         <Transition name="page" mode="out-in">
           <component :is="Component" :key="viewRoute.meta.stableKey ? String(viewRoute.name) : viewRoute.path" />

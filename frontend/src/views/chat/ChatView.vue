@@ -84,10 +84,12 @@ import {
   Code,
   RotateCw,
   Filter,
-  StickyNote
+  StickyNote,
+  ChevronLeft
 } from 'lucide-vue-next'
 import { getInitials, getAvatarGradient } from '@/lib/utils'
 import { useColorMode } from '@/composables/useColorMode'
+import { useMediaQuery } from '@vueuse/core'
 import { useInfiniteScroll } from '@/composables/useInfiniteScroll'
 import CannedResponsePicker from '@/components/chat/CannedResponsePicker.vue'
 import TemplatePicker from '@/components/chat/TemplatePicker.vue'
@@ -260,6 +262,20 @@ function updateAtBottom(el: HTMLElement) {
 }
 
 const contactId = computed(() => route.params.contactId as string | undefined)
+
+const isMdUp = useMediaQuery('(min-width: 768px)')
+/** On narrow viewports, list and thread are shown one at a time */
+const showMobileThread = ref(false)
+const showChatContactList = computed(
+  () => isMdUp.value || !contactsStore.currentContact || !showMobileThread.value
+)
+const showChatThreadPane = computed(
+  () => isMdUp.value || (!!contactsStore.currentContact && showMobileThread.value)
+)
+
+function mobileBackToContactList() {
+  showMobileThread.value = false
+}
 
 // Get active transfer for current contact from the store (reactive)
 const activeTransfer = computed(() => {
@@ -529,12 +545,18 @@ watch(contactId, async (newId) => {
     notesStore.notes = []
     notesStore.hasMore = false
     await selectContact(newId)
+    if (!isMdUp.value) showMobileThread.value = true
   } else {
     wsService.setCurrentContact(null)
     contactsStore.setCurrentContact(null)
     contactsStore.clearMessages()
     notesStore.clearNotes()
+    showMobileThread.value = false
   }
+})
+
+watch(isMdUp, (wide) => {
+  if (wide) showMobileThread.value = false
 })
 
 async function selectContact(id: string) {
@@ -680,6 +702,7 @@ async function switchAccount(accountName: string) {
 }
 
 function handleContactClick(contact: Contact) {
+  if (!isMdUp.value) showMobileThread.value = true
   router.push(`/chat/${contact.id}`)
 }
 
@@ -1468,11 +1491,16 @@ async function sendMediaMessage() {
 </script>
 
 <template>
-  <div class="flex h-full bg-[#0a0a0b] light:bg-gray-50">
+  <div class="flex h-full min-h-0 min-w-0 flex-col bg-background md:flex-row">
     <!-- Contacts List -->
-    <div class="w-80 border-r border-white/[0.08] light:border-gray-200 flex flex-col bg-[#0a0a0b] light:bg-white">
+    <div
+      :class="[
+        'flex-col border-r border-border bg-background md:bg-card md:w-80 md:shrink-0 min-h-0 min-w-0 w-full',
+        showChatContactList ? 'flex' : 'hidden md:flex md:flex-col'
+      ]"
+    >
       <!-- Search Header -->
-      <div class="p-2 border-b border-white/[0.08] light:border-gray-200">
+      <div class="p-2 border-b border-border">
         <div class="flex items-center gap-2">
           <div class="relative flex-1">
             <Search class="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/40 light:text-gray-400" />
@@ -1504,10 +1532,10 @@ async function sendMediaMessage() {
                 variant="ghost"
                 size="icon"
                 class="h-8 w-8 shrink-0 relative"
-                :class="contactsStore.selectedTags.length > 0 ? 'text-emerald-400 bg-emerald-500/10' : 'text-white/40 hover:text-white hover:bg-white/[0.08] light:text-gray-500 light:hover:text-gray-900 light:hover:bg-gray-100'"
+                :class="contactsStore.selectedTags.length > 0 ? 'text-primary bg-primary/15' : 'text-white/40 hover:text-white hover:bg-white/[0.08] light:text-gray-500 light:hover:text-gray-900 light:hover:bg-gray-100'"
               >
                 <Filter class="h-4 w-4" />
-                <span v-if="contactsStore.selectedTags.length > 0" class="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-emerald-500 text-[10px] text-white flex items-center justify-center">
+                <span v-if="contactsStore.selectedTags.length > 0" class="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] text-primary-foreground flex items-center justify-center">
                   {{ contactsStore.selectedTags.length }}
                 </span>
               </Button>
@@ -1542,7 +1570,7 @@ async function sendMediaMessage() {
                     <span class="flex-1 text-left truncate">{{ tag.name }}</span>
                     <Check
                       v-if="contactsStore.selectedTags.includes(tag.name)"
-                      class="h-4 w-4 text-emerald-400 shrink-0"
+                      class="h-4 w-4 text-primary shrink-0"
                     />
                   </button>
                 </div>
@@ -1599,7 +1627,7 @@ async function sendMediaMessage() {
                 <p class="flex-1 min-w-0 text-xs text-white/50 light:text-gray-500 truncate">
                   {{ contact.phone_number }}
                 </p>
-                <Badge v-if="contact.unread_count > 0" class="flex-shrink-0 h-5 text-[10px] bg-emerald-500/20 text-emerald-400 light:bg-emerald-100 light:text-emerald-700">
+                <Badge v-if="contact.unread_count > 0" class="flex-shrink-0 h-5 text-[10px] bg-primary/20 text-primary light:bg-primary/15 light:text-primary">
                   {{ contact.unread_count }}
                 </Badge>
               </div>
@@ -1620,15 +1648,20 @@ async function sendMediaMessage() {
     </div>
 
     <!-- Chat Area -->
-    <div class="flex-1 flex flex-col bg-[#0f0f10] light:bg-gray-50">
+    <div
+      :class="[
+        'flex-1 flex flex-col chat-background min-h-0 min-w-0',
+        showChatThreadPane ? 'flex' : 'hidden md:flex'
+      ]"
+    >
       <!-- No Contact Selected -->
       <div
         v-if="!contactsStore.currentContact"
         class="flex-1 flex items-center justify-center text-white/40 light:text-gray-500"
       >
         <div class="text-center">
-          <div class="h-16 w-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-500/20">
-            <Send class="h-8 w-8 text-white" />
+          <div class="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary to-blue-700 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary/25">
+            <Send class="h-8 w-8 text-primary-foreground" />
           </div>
           <h3 class="font-medium text-lg mb-1 text-white light:text-gray-900">{{ $t('chat.selectConversation') }}</h3>
           <p class="text-sm text-white/50 light:text-gray-500">{{ $t('chat.chooseContact') }}</p>
@@ -1638,9 +1671,19 @@ async function sendMediaMessage() {
       <!-- Chat Interface -->
       <template v-else>
         <!-- Chat Header -->
-        <div class="h-14 flex-shrink-0 px-4 border-b border-white/[0.08] light:border-gray-200 flex items-center justify-between bg-[#0f0f10] light:bg-white">
-          <div class="flex items-center gap-2">
-            <Avatar class="h-8 w-8 ring-2 ring-white/[0.1] light:ring-gray-200">
+        <div class="h-14 flex-shrink-0 px-3 md:px-4 border-b border-border flex items-center justify-between chat-background light:bg-white">
+          <div class="flex items-center gap-2 min-w-0">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              class="h-10 w-10 shrink-0 md:hidden text-foreground"
+              :aria-label="$t('common.back')"
+              @click="mobileBackToContactList"
+            >
+              <ChevronLeft class="h-5 w-5" />
+            </Button>
+            <Avatar class="h-8 w-8 ring-2 ring-border shrink-0">
               <AvatarImage :src="contactsStore.currentContact.avatar_url" />
               <AvatarFallback :class="'text-xs bg-gradient-to-br text-white ' + getAvatarGradient(contactsStore.currentContact.name || contactsStore.currentContact.phone_number)">
                 {{ getInitials(contactsStore.currentContact.name || contactsStore.currentContact.phone_number) }}
@@ -1732,7 +1775,7 @@ async function sendMediaMessage() {
                   size="icon"
                   id="info-button"
                   class="h-8 w-8 text-white/50 hover:text-white hover:bg-white/[0.08] light:text-gray-500 light:hover:text-gray-900 light:hover:bg-gray-100"
-                  :class="isInfoPanelOpen && 'bg-white/[0.08] text-white light:bg-gray-100 light:text-gray-900'"
+                  :class="isInfoPanelOpen && 'bg-muted text-foreground'"
                   @click="isInfoPanelOpen = !isInfoPanelOpen"
                 >
                   <Info class="h-4 w-4" />
@@ -1773,7 +1816,7 @@ async function sendMediaMessage() {
         <!-- Account Tabs (shown when contact has messages from multiple WhatsApp accounts) -->
         <div
           v-if="orgAccounts.length > 1 && selectedAccount"
-          class="flex-shrink-0 px-4 py-2 border-b border-white/[0.08] light:border-gray-200 bg-[#0a0a0b] light:bg-gray-50"
+          class="flex-shrink-0 px-4 py-2 border-b border-border bg-background light:bg-muted/40"
         >
           <div class="inline-flex items-center gap-1 rounded-lg bg-white/[0.06] light:bg-gray-100 p-1">
             <button
@@ -1782,7 +1825,7 @@ async function sendMediaMessage() {
               :class="[
                 'rounded-md px-3 py-1 text-xs font-medium whitespace-nowrap transition-all',
                 acct.name === selectedAccount
-                  ? 'bg-emerald-600 text-white shadow-sm'
+                  ? 'bg-primary text-primary-foreground shadow-sm'
                   : 'bg-white/[0.08] text-white/70 hover:text-white/90 hover:bg-white/[0.12] light:bg-gray-200 light:text-gray-600 light:hover:text-gray-800 light:hover:bg-gray-300'
               ]"
               @click="switchAccount(acct.name)"
@@ -2200,7 +2243,7 @@ async function sendMediaMessage() {
         </div>
 
         <!-- Message Input -->
-        <div class="p-4 border-t border-white/[0.08] light:border-gray-200 bg-[#0f0f10] light:bg-white">
+        <div class="p-4 border-t border-border chat-background light:bg-white">
           <form @submit.prevent="sendMessage" class="flex items-center gap-2 p-2 rounded-xl bg-white/[0.06] light:bg-gray-100 border border-white/[0.08] light:border-gray-200">
             <Tooltip>
               <TooltipTrigger as-child>
@@ -2272,8 +2315,8 @@ async function sendMediaMessage() {
               @keydown.enter.exact.prevent="sendMessage"
               @input="autoResizeTextarea"
             />
-            <button type="submit" class="w-9 h-9 rounded-lg bg-emerald-600 hover:bg-emerald-500 light:bg-emerald-500 light:hover:bg-emerald-600 flex items-center justify-center transition-colors disabled:opacity-50" :disabled="!messageInput.trim() || isSending">
-              <Send class="w-4 h-4 text-white" />
+            <button type="submit" class="w-10 h-10 min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 md:h-9 md:w-9 rounded-lg bg-primary hover:bg-primary/90 flex items-center justify-center transition-colors disabled:opacity-50" :disabled="!messageInput.trim() || isSending">
+              <Send class="w-4 h-4 text-primary-foreground" />
             </button>
           </form>
         </div>

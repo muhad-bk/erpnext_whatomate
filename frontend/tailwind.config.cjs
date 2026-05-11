@@ -24,7 +24,7 @@ module.exports = {
   	},
   	extend: {
   		fontFamily: {
-  			sans: ['Inter', ...defaultTheme.fontFamily.sans],
+  			sans: ['IBM Plex Sans', ...defaultTheme.fontFamily.sans],
   		},
   		colors: {
   			border: 'hsl(var(--border))',
@@ -88,9 +88,13 @@ module.exports = {
   			}
   		},
   		borderRadius: {
+  			/* --radius is 2px; Carbon-like tight corners */
   			lg: 'var(--radius)',
-  			md: 'calc(var(--radius) - 2px)',
-  			sm: 'calc(var(--radius) - 4px)'
+  			md: 'max(2px, calc(var(--radius) + 2px))',
+  			sm: 'var(--radius)',
+  			xl: '4px',
+  			'2xl': '4px',
+  			'3xl': '6px'
   		},
   		keyframes: {
   			'accordion-down': {

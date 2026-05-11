@@ -32,6 +32,7 @@ import { useAuthStore } from '@/stores/auth'
 import { contactsService, type Tag } from '@/services/api'
 import { toast } from 'vue-sonner'
 import type { Contact } from '@/stores/contacts'
+import { useMediaQuery } from '@vueuse/core'
 
 interface PanelFieldConfig {
   key: string
@@ -75,6 +76,7 @@ const emit = defineEmits<{
 
 const tagsStore = useTagsStore()
 const authStore = useAuthStore()
+const isMdUp = useMediaQuery('(min-width: 768px)')
 const collapsedSections = ref<Record<string, boolean>>({})
 const tagSelectorOpen = ref(false)
 const isUpdatingTags = ref(false)
@@ -146,7 +148,7 @@ function getFieldValue(key: string): string {
 function getColorClass(color?: string): string {
   switch (color) {
     case 'success':
-      return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+      return 'bg-primary/15 text-primary dark:bg-primary/20 dark:text-primary'
     case 'warning':
       return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
     case 'error':
@@ -242,20 +244,24 @@ async function updateContactTags(tags: string[]) {
 
 <template>
   <div
-    class="flex flex-col bg-card h-full relative"
-    :style="{ width: `${panelWidth}px` }"
+    :class="[
+      'flex flex-col bg-card h-full relative border-l border-border',
+      !isMdUp && 'fixed inset-y-0 right-0 z-50 w-full max-w-md shadow-2xl'
+    ]"
+    :style="isMdUp ? { width: `${panelWidth}px` } : undefined"
   >
-    <!-- Resize Handle -->
+    <!-- Resize Handle (desktop only) -->
     <div
-      class="absolute left-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-primary/20 active:bg-primary/30 z-10 border-l"
+      v-if="isMdUp"
+      class="absolute left-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-primary/20 active:bg-primary/30 z-10 border-l border-border"
       :class="{ 'bg-primary/30': isResizing }"
       @mousedown="startResize"
     />
 
     <!-- Header -->
-    <div class="h-12 px-3 border-b flex items-center justify-between">
-      <h3 class="font-medium text-sm">Contact Info</h3>
-      <Button variant="ghost" size="icon" class="h-8 w-8" @click="emit('close')">
+    <div class="h-12 px-3 border-b border-border flex items-center justify-between">
+      <h3 class="font-medium text-sm text-foreground">Contact Info</h3>
+      <Button variant="ghost" size="icon" class="h-10 w-10 min-h-[44px] min-w-[44px] md:h-8 md:w-8 md:min-h-0 md:min-w-0 shrink-0" @click="emit('close')">
         <X class="h-4 w-4" />
       </Button>
     </div>

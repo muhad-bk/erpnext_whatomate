@@ -10,6 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'vue-sonner'
 import { useInfiniteScroll } from '@/composables/useInfiniteScroll'
+import { useMediaQuery } from '@vueuse/core'
 import { getInitials, getAvatarGradient } from '@/lib/utils'
 import {
   StickyNote, Pencil, Trash2, X, Check, Loader2, Send
@@ -26,6 +27,7 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const notesStore = useNotesStore()
 const authStore = useAuthStore()
+const isMdUp = useMediaQuery('(min-width: 768px)')
 
 const newNoteContent = ref('')
 const editingNoteId = ref<string | null>(null)
@@ -160,14 +162,20 @@ function formatNoteTime(dateStr: string) {
 </script>
 
 <template>
-  <div id="notes-panel" class="w-80 border-l border-white/[0.08] light:border-gray-200 bg-[#111113] light:bg-white flex flex-col">
+  <div
+    id="notes-panel"
+    :class="[
+      'border-l border-border bg-card flex flex-col',
+      isMdUp ? 'w-80' : 'fixed inset-y-0 right-0 z-50 w-full max-w-md shadow-2xl'
+    ]"
+  >
     <!-- Header -->
-    <div class="px-4 py-3 border-b border-white/[0.08] light:border-gray-200 flex items-center justify-between">
+    <div class="px-4 py-3 border-b border-border flex items-center justify-between">
       <div class="flex items-center gap-2">
         <div class="h-7 w-7 rounded-lg bg-amber-500/15 flex items-center justify-center">
           <StickyNote class="h-4 w-4 text-amber-400 light:text-amber-600" />
         </div>
-        <span class="text-sm font-semibold text-white light:text-gray-900">{{ t('chat.internalNotes') }}</span>
+        <span class="text-sm font-semibold text-foreground">{{ t('chat.internalNotes') }}</span>
         <Badge v-if="notesStore.notes.length > 0" class="bg-amber-500/20 text-amber-400 light:bg-amber-100 light:text-amber-700 border-0 text-[10px] px-1.5 py-0">
           {{ notesStore.notes.length }}
         </Badge>
@@ -175,7 +183,7 @@ function formatNoteTime(dateStr: string) {
       <Button
         variant="ghost"
         size="icon"
-        class="h-7 w-7 text-white/40 hover:text-white hover:bg-white/[0.08] light:text-gray-500 light:hover:text-gray-900 light:hover:bg-gray-100"
+        class="h-10 w-10 min-h-[44px] min-w-[44px] md:h-7 md:w-7 md:min-h-0 md:min-w-0 text-muted-foreground hover:text-foreground hover:bg-muted shrink-0"
         @click="emit('close')"
       >
         <X class="h-4 w-4" />

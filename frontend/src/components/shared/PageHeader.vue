@@ -22,8 +22,8 @@ defineProps<{
 </script>
 
 <template>
-  <header class="border-b border-white/[0.08] light:border-gray-200 bg-[#0a0a0b]/95 light:bg-white/95 backdrop-blur">
-    <div class="flex h-16 items-center px-6">
+  <header class="border-b border-border bg-card/95 backdrop-blur">
+    <div class="flex h-16 items-center px-4 sm:px-6 min-w-0">
       <RouterLink v-if="backLink" :to="backLink">
         <Button variant="ghost" size="icon" class="mr-3">
           <ArrowLeft class="h-5 w-5" />
@@ -37,7 +37,7 @@ defineProps<{
         <component :is="icon" class="h-4 w-4 text-white" />
       </div>
       <div class="flex-1">
-        <h1 class="text-xl font-semibold text-white light:text-gray-900">{{ title }}</h1>
+        <h1 class="text-xl font-semibold text-foreground truncate">{{ title }}</h1>
         <template v-if="breadcrumbs?.length">
           <Breadcrumb>
             <BreadcrumbList>
@@ -53,7 +53,7 @@ defineProps<{
             </BreadcrumbList>
           </Breadcrumb>
         </template>
-        <p v-else-if="description" class="text-sm text-white/50 light:text-gray-500">
+        <p v-else-if="description" class="text-sm text-muted-foreground">
           {{ description }}
         </p>
       </div>

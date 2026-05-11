@@ -92,12 +92,12 @@ const initiateSSO = (provider: string) => {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-[#0a0a0b] light:bg-gradient-to-br light:from-gray-50 light:to-gray-100 p-4">
-    <div class="w-full max-w-md rounded-2xl border border-white/[0.08] bg-white/[0.02] backdrop-blur light:bg-white light:border-gray-200 light:shadow-xl">
+  <div class="min-h-screen flex items-center justify-center bg-background light:bg-gradient-to-br light:from-muted/30 light:to-background p-4">
+    <div class="w-full max-w-md rounded-2xl border border-border bg-card/80 backdrop-blur light:bg-card light:shadow-xl">
       <div class="p-8 space-y-1 text-center">
         <div class="flex justify-center mb-4">
-          <div class="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-            <MessageSquare class="h-7 w-7 text-white" />
+          <div class="h-12 w-12 rounded-xl bg-gradient-to-br from-primary to-blue-700 flex items-center justify-center shadow-lg shadow-primary/20">
+            <MessageSquare class="h-7 w-7 text-primary-foreground" />
           </div>
         </div>
         <h2 class="text-2xl font-bold text-white light:text-gray-900">{{ $t('auth.welcomeTitle') }}</h2>
@@ -130,7 +130,7 @@ const initiateSSO = (provider: string) => {
               autocomplete="current-password"
             />
           </div>
-          <Button type="submit" class="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white shadow-lg shadow-emerald-500/20" :disabled="isLoading">
+          <Button type="submit" class="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-md" :disabled="isLoading">
             <Loader2 v-if="isLoading" class="mr-2 h-4 w-4 animate-spin" />
             {{ $t('auth.signIn') }}
           </Button>
@@ -141,7 +141,7 @@ const initiateSSO = (provider: string) => {
       <div v-if="ssoProviders.length > 0" class="px-8 pb-4 space-y-3">
         <div class="relative my-2">
           <Separator class="bg-white/[0.08] light:bg-gray-200" />
-          <span class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#0a0a0b] light:bg-white px-2 text-xs text-white/40 light:text-gray-500">
+          <span class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background light:bg-card px-2 text-xs text-muted-foreground">
             {{ $t('auth.orContinueWith') }}
           </span>
         </div>
@@ -164,7 +164,7 @@ const initiateSSO = (provider: string) => {
       <div class="px-8 pb-8">
         <p class="text-sm text-center text-white/40 light:text-gray-500">
           {{ $t('auth.noAccount') }}
-          <RouterLink to="/register" class="text-emerald-400 light:text-emerald-600 hover:underline">
+          <RouterLink to="/register" class="text-primary light:text-primary hover:underline">
             {{ $t('auth.signUp') }}
           </RouterLink>
         </p>

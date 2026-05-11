@@ -163,48 +163,48 @@ const handleLogout = () => {
 </script>
 
 <template>
-  <div class="border-t border-white/[0.08] light:border-gray-200 p-2">
+  <div class="border-t border-border p-2">
     <Popover v-model:open="isUserMenuOpen">
       <PopoverTrigger as-child>
         <Button
           variant="ghost"
           :class="[
-            'flex items-center justify-start w-full h-auto px-2 py-1.5 gap-2 hover:bg-white/[0.04] light:hover:bg-gray-100',
+            'flex items-center justify-start w-full h-auto px-2 py-1.5 gap-2 hover:bg-muted/80',
             collapsed && 'md:justify-center'
           ]"
           aria-label="User menu"
         >
-          <Avatar class="h-7 w-7 ring-2 ring-white/[0.1] light:ring-gray-200">
+          <Avatar class="h-7 w-7 ring-2 ring-border">
             <AvatarImage :src="undefined" />
-            <AvatarFallback class="text-xs bg-gradient-to-br from-emerald-500 to-green-600 text-white">
+            <AvatarFallback class="text-xs bg-gradient-to-br from-primary to-blue-700 text-primary-foreground">
               {{ getInitials(authStore.user?.full_name || 'U') }}
             </AvatarFallback>
           </Avatar>
           <div v-if="!collapsed" class="flex flex-col items-start text-left">
-            <span class="text-[13px] font-medium truncate max-w-[140px] text-white light:text-gray-900">
+            <span class="text-[13px] font-medium truncate max-w-[140px] text-foreground">
               {{ authStore.user?.full_name }}
             </span>
-            <span class="text-[11px] text-white/40 light:text-gray-500 truncate max-w-[140px]">
+            <span class="text-[11px] text-muted-foreground truncate max-w-[140px]">
               {{ authStore.user?.email }}
             </span>
           </div>
         </Button>
       </PopoverTrigger>
-      <PopoverContent side="top" align="start" class="w-52 p-1.5 bg-[#141414] light:bg-white border-white/[0.08] light:border-gray-200">
-        <div class="text-xs font-medium px-2 py-1 text-white/40 light:text-gray-500">{{ $t('userMenu.myAccount') }}</div>
-        <Separator class="my-1 bg-white/[0.08] light:bg-gray-200" />
+      <PopoverContent side="top" align="start" class="w-[min(13rem,calc(100vw-1rem))] max-w-[calc(100vw-1rem)] p-1.5 bg-popover text-popover-foreground border border-border">
+        <div class="text-xs font-medium px-2 py-1 text-muted-foreground">{{ $t('userMenu.myAccount') }}</div>
+        <Separator class="my-1 bg-border" />
         <!-- Availability Toggle -->
         <div class="flex items-center justify-between px-2 py-1.5">
           <div class="flex items-center gap-2">
-            <span class="text-[13px] text-white/70 light:text-gray-700">{{ $t('userMenu.status') }}</span>
+            <span class="text-[13px] text-foreground">{{ $t('userMenu.status') }}</span>
             <Badge
               :class="'text-[10px] px-1.5 py-0 ' + (authStore.isAvailable
-                  ? 'bg-emerald-500/20 text-emerald-400 light:bg-emerald-100 light:text-emerald-700'
-                  : 'bg-white/[0.08] text-white/50 light:bg-gray-100 light:text-gray-500')"
+                  ? 'bg-primary/20 text-primary light:bg-primary/15 light:text-primary'
+                  : 'bg-muted text-muted-foreground')"
             >
               {{ authStore.isAvailable ? $t('userMenu.available') : $t('userMenu.away') }}
             </Badge>
-            <span v-if="!authStore.isAvailable && breakDuration" class="text-[10px] text-white/40 light:text-gray-400">
+            <span v-if="!authStore.isAvailable && breakDuration" class="text-[10px] text-muted-foreground">
               {{ breakDuration }}
             </span>
           </div>
@@ -215,29 +215,29 @@ const handleLogout = () => {
             @update:checked="handleAvailabilityChange"
           />
         </div>
-        <Separator class="my-1 bg-white/[0.08] light:bg-gray-200" />
+        <Separator class="my-1 bg-border" />
         <RouterLink to="/profile">
           <Button
             variant="ghost"
-            class="w-full justify-start px-2 py-1 h-auto text-[13px] font-normal text-white/70 hover:text-white hover:bg-white/[0.04] light:text-gray-600 light:hover:text-gray-900 light:hover:bg-gray-100"
+            class="w-full justify-start px-2 py-1 h-auto text-[13px] font-normal text-foreground hover:bg-muted"
             @click="isUserMenuOpen = false"
           >
             <User class="mr-2 h-3.5 w-3.5" aria-hidden="true" />
             <span>{{ $t('userMenu.profile') }}</span>
           </Button>
         </RouterLink>
-        <Separator class="my-1 bg-white/[0.08] light:bg-gray-200" />
-        <div class="text-xs font-medium px-2 py-1 text-white/40 light:text-gray-500">{{ $t('userMenu.theme') }}</div>
+        <Separator class="my-1 bg-border" />
+        <div class="text-xs font-medium px-2 py-1 text-muted-foreground">{{ $t('userMenu.theme') }}</div>
         <ThemeSwitcher />
-        <Separator class="my-1 bg-white/[0.08] light:bg-gray-200" />
-        <div class="text-xs font-medium px-2 py-1 text-white/40 light:text-gray-500">{{ $t('userMenu.language') }}</div>
+        <Separator class="my-1 bg-border" />
+        <div class="text-xs font-medium px-2 py-1 text-muted-foreground">{{ $t('userMenu.language') }}</div>
         <div class="px-1.5 py-1">
           <LanguageSwitcher />
         </div>
-        <Separator class="my-1 bg-white/[0.08] light:bg-gray-200" />
+        <Separator class="my-1 bg-border" />
         <Button
           variant="ghost"
-          class="w-full justify-start px-2 py-1 h-auto text-[13px] font-normal text-white/70 hover:text-white hover:bg-white/[0.04] light:text-gray-600 light:hover:text-gray-900 light:hover:bg-gray-100"
+          class="w-full justify-start px-2 py-1 h-auto text-[13px] font-normal text-foreground hover:bg-muted"
           @click="handleLogout"
         >
           <LogOut class="mr-2 h-3.5 w-3.5" aria-hidden="true" />

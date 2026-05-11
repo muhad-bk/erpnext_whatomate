@@ -126,7 +126,7 @@ const selectedShortcuts = ref<string[]>([])
 
 // Shortcut registry
 const SHORTCUT_REGISTRY = computed(() => ({
-  chat: { label: t('dashboard.startChat'), to: '/chat', icon: MessageSquare, gradient: 'from-emerald-500 to-green-600' },
+  chat: { label: t('dashboard.startChat'), to: '/chat', icon: MessageSquare, gradient: 'from-primary to-blue-700' },
   campaigns: { label: t('nav.campaigns'), to: '/campaigns', icon: Megaphone, gradient: 'from-orange-500 to-amber-600' },
   templates: { label: t('nav.templates'), to: '/templates', icon: FileText, gradient: 'from-blue-500 to-cyan-600' },
   chatbot: { label: t('nav.chatbot'), to: '/chatbot', icon: Bot, gradient: 'from-purple-500 to-pink-600' },
@@ -139,19 +139,19 @@ const SHORTCUT_REGISTRY = computed(() => ({
   accounts: { label: t('nav.accounts'), to: '/settings/accounts', icon: Users, gradient: 'from-violet-500 to-purple-600' },
   cannedResponses: { label: t('nav.cannedResponses'), to: '/settings/canned-responses', icon: MessageSquareText, gradient: 'from-amber-500 to-yellow-600' },
   tags: { label: t('nav.tags'), to: '/settings/tags', icon: Tags, gradient: 'from-pink-500 to-rose-600' },
-  teams: { label: t('nav.teams'), to: '/settings/teams', icon: Users, gradient: 'from-lime-500 to-green-600' },
+  teams: { label: t('nav.teams'), to: '/settings/teams', icon: Users, gradient: 'from-sky-500 to-blue-700' },
   users: { label: t('nav.users'), to: '/settings/users', icon: Users, gradient: 'from-fuchsia-500 to-pink-600' },
   roles: { label: t('nav.roles'), to: '/settings/roles', icon: Shield, gradient: 'from-slate-500 to-gray-600' },
   apiKeys: { label: t('nav.apiKeys'), to: '/settings/api-keys', icon: Key, gradient: 'from-yellow-500 to-orange-600' },
   webhooks: { label: t('nav.webhooks'), to: '/settings/webhooks', icon: Webhook, gradient: 'from-red-500 to-rose-600' },
   customActions: { label: t('nav.customActions'), to: '/settings/custom-actions', icon: Zap, gradient: 'from-amber-500 to-orange-600' },
-  sso: { label: t('nav.sso'), to: '/settings/sso', icon: ShieldCheck, gradient: 'from-emerald-500 to-teal-600' },
+  sso: { label: t('nav.sso'), to: '/settings/sso', icon: ShieldCheck, gradient: 'from-primary to-blue-600' },
 }))
 
 // Color options
 const colorOptions = computed(() => [
   { value: 'blue', label: t('dashboard.colorBlue'), bg: 'bg-blue-500/20', text: 'text-blue-400' },
-  { value: 'green', label: t('dashboard.colorGreen'), bg: 'bg-emerald-500/20', text: 'text-emerald-400' },
+  { value: 'green', label: t('dashboard.colorGreen'), bg: 'bg-primary/20', text: 'text-primary' },
   { value: 'purple', label: t('dashboard.colorPurple'), bg: 'bg-purple-500/20', text: 'text-purple-400' },
   { value: 'orange', label: t('dashboard.colorOrange'), bg: 'bg-orange-500/20', text: 'text-orange-400' },
   { value: 'red', label: t('dashboard.colorRed'), bg: 'bg-red-500/20', text: 'text-red-400' },
@@ -228,7 +228,7 @@ const getChartComponentData = (widget: DashboardWidget) => {
   // Default: line and bar charts use time-series chart_data
   const colorMap: Record<string, string> = {
     blue: 'rgb(59, 130, 246)',
-    green: 'rgb(16, 185, 129)',
+    green: 'rgb(15, 98, 254)',
     purple: 'rgb(139, 92, 246)',
     orange: 'rgb(245, 158, 11)',
     red: 'rgb(239, 68, 68)',
@@ -321,7 +321,7 @@ const formatTime = (dateStr: string): string => {
 const getWidgetColor = (color: string) => {
   const gradientMap: Record<string, string> = {
     blue: 'bg-gradient-to-r from-blue-500/60 to-blue-500/0',
-    green: 'bg-gradient-to-r from-emerald-500/60 to-emerald-500/0',
+    green: 'bg-gradient-to-r from-primary/60 to-primary/0',
     purple: 'bg-gradient-to-r from-violet-500/60 to-violet-500/0',
     orange: 'bg-gradient-to-r from-amber-500/60 to-amber-500/0',
     red: 'bg-gradient-to-r from-rose-500/60 to-rose-500/0',
@@ -702,16 +702,16 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full bg-[#0a0a0b] light:bg-gray-50">
+  <div class="flex flex-col h-full bg-background">
     <!-- Header -->
-    <header class="border-b border-white/[0.08] light:border-gray-200 bg-[#0a0a0b]/95 light:bg-white/95 backdrop-blur">
-      <div class="flex h-16 items-center px-6">
-        <div class="h-8 w-8 rounded-lg bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center mr-3 shadow-lg shadow-emerald-500/20">
-          <LayoutDashboard class="h-4 w-4 text-white" />
+    <header class="border-b border-border bg-card/95 backdrop-blur">
+      <div class="flex h-16 items-center px-4 sm:px-6">
+        <div class="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-blue-700 flex items-center justify-center mr-3 shadow-md shadow-primary/20">
+          <LayoutDashboard class="h-4 w-4 text-primary-foreground" />
         </div>
-        <div class="flex-1">
-          <h1 class="text-xl font-semibold text-white light:text-gray-900">{{ $t('dashboard.title') }}</h1>
-          <p class="text-sm text-white/50 light:text-gray-500">{{ $t('dashboard.subtitle') }}</p>
+        <div class="flex-1 min-w-0">
+          <h1 class="text-xl font-semibold text-foreground">{{ $t('dashboard.title') }}</h1>
+          <p class="text-sm text-muted-foreground">{{ $t('dashboard.subtitle') }}</p>
         </div>
 
         <!-- Time Range Filter -->
@@ -728,7 +728,7 @@ onMounted(() => {
             @click="isDragMode = !isDragMode"
             :class="[
               isDragMode
-                ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/30 hover:text-emerald-300'
+                ? 'bg-primary/20 border-primary/40 text-primary hover:bg-primary/30 hover:text-primary'
                 : 'bg-white/[0.04] border-white/[0.1] text-white/70 hover:bg-white/[0.08] hover:text-white light:bg-white light:border-gray-200 light:text-gray-700'
             ]"
           >
@@ -855,10 +855,10 @@ onMounted(() => {
                     :is="widgetData[item.i]?.change > 0 ? TrendingUp : widgetData[item.i]?.change < 0 ? TrendingDown : Minus"
                     :class="[
                       'h-3 w-3 mr-1',
-                      widgetData[item.i]?.change > 0 ? 'text-emerald-400' : widgetData[item.i]?.change < 0 ? 'text-red-400' : 'text-white/30'
+                      widgetData[item.i]?.change > 0 ? 'text-primary' : widgetData[item.i]?.change < 0 ? 'text-red-400' : 'text-white/30'
                     ]"
                   />
-                  <span :class="widgetData[item.i]?.change > 0 ? 'text-emerald-400' : widgetData[item.i]?.change < 0 ? 'text-red-400' : 'text-white/30 light:text-gray-400'">
+                  <span :class="widgetData[item.i]?.change > 0 ? 'text-primary' : widgetData[item.i]?.change < 0 ? 'text-red-400' : 'text-white/30 light:text-gray-400'">
                     {{ Math.abs(widgetData[item.i]?.change || 0).toFixed(1) }}%
                   </span>
                   <span class="ml-1">{{ comparisonPeriodLabel }}</span>
@@ -985,7 +985,7 @@ onMounted(() => {
                       <div
                         :class="[
                           'h-10 w-10 rounded-lg flex items-center justify-center text-sm font-medium shrink-0',
-                          row.direction === 'incoming' ? 'bg-gradient-to-br from-emerald-500 to-green-600 text-white' : 'bg-gradient-to-br from-blue-500 to-cyan-600 text-white'
+                          row.direction === 'incoming' ? 'bg-gradient-to-br from-primary to-blue-700 text-white' : 'bg-gradient-to-br from-blue-500 to-cyan-600 text-white'
                         ]"
                       >
                         {{ row.label.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() }}
@@ -1004,7 +1004,7 @@ onMounted(() => {
                             v-if="row.direction"
                             :class="[
                               'text-[10px] px-1.5 py-0.5 rounded-full font-medium',
-                              row.direction === 'incoming' ? 'bg-emerald-500/20 text-emerald-400 light:bg-emerald-100 light:text-emerald-700' : 'bg-blue-500/20 text-blue-400 light:bg-blue-100 light:text-blue-700'
+                              row.direction === 'incoming' ? 'bg-primary/20 text-primary light:bg-primary/15 light:text-primary' : 'bg-blue-500/20 text-blue-400 light:bg-blue-100 light:text-blue-700'
                             ]"
                           >
                             {{ row.direction }}
@@ -1014,7 +1014,7 @@ onMounted(() => {
                             :class="[
                               'text-[10px] px-1.5 py-0.5 rounded-full font-medium',
                               row.status === 'delivered' ? 'bg-blue-500/20 text-blue-400 light:bg-blue-100 light:text-blue-700' :
-                              row.status === 'read' ? 'bg-emerald-500/20 text-emerald-400 light:bg-emerald-100 light:text-emerald-700' :
+                              row.status === 'read' ? 'bg-primary/20 text-primary light:bg-primary/15 light:text-primary' :
                               row.status === 'failed' ? 'bg-red-500/20 text-red-400 light:bg-red-100 light:text-red-700' :
                               'bg-white/10 text-white/50 light:bg-gray-100 light:text-gray-600'
                             ]"
@@ -1226,7 +1226,7 @@ onMounted(() => {
                   type="checkbox"
                   :value="key"
                   v-model="selectedShortcuts"
-                  class="rounded border-white/20 bg-white/[0.04] text-emerald-500 focus:ring-emerald-500 light:border-gray-300 light:bg-white"
+                  class="rounded border-white/20 bg-white/[0.04] text-primary focus:ring-primary light:border-gray-300 light:bg-white"
                 />
                 <div class="flex items-center gap-2">
                   <div :class="['h-8 w-8 rounded-lg bg-gradient-to-br flex items-center justify-center', shortcut.gradient]">
