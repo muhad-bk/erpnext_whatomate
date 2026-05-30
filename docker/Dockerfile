@@ -69,6 +69,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy binary from builder
 COPY --from=builder /app/whatomate .
 
+# Render startup helper (maps DATABASE_URL / REDIS_URL / PORT to WHATOMATE_* env)
+COPY docker/render-start.sh ./render-start.sh
+RUN chmod +x ./render-start.sh
+
 # Copy config example (will be overridden by env vars in production)
 COPY --from=builder /app/config.example.toml ./config.toml
 

@@ -1,0 +1,113 @@
+# Render Blueprint for Whatomate
+# Docs: https://render.com/docs/blueprint-spec
+#
+# Deploy: connect this repo in the Render Dashboard and point Blueprint Path to render.yaml
+#
+# After the first deploy:
+# 1. Change the default admin password (initial login: admin@admin.com / admin)
+# 2. Set Meta / WhatsApp credentials when prompted (or in the Dashboard)
+# 3. For production file storage beyond a single instance, configure S3 via WHATOMATE_STORAGE_* vars
+# 4. WhatsApp voice calling (WebRTC UDP) is limited on Render; prefer TURN relay (WHATOMATE_CALLING_RELAY_ONLY)
+
+envVarGroups:
+  - name: whatomate-shared
+    envVars:
+      - key: TZ
+        value: UTC
+      - key: WHATOMATE_APP_ENVIRONMENT
+        value: production
+      - key: WHATOMATE_APP_DEBUG
+        value: "false"
+      - key: WHATOMATE_DATABASE_SSL_MODE
+        value: require
+      - key: WHATOMATE_RATE_LIMIT_ENABLED
+        value: "true"
+      - key: WHATOMATE_RATE_LIMIT_TRUST_PROXY
+        value: "true"
+      - key: WHATOMATE_STORAGE_TYPE
+        value: local
+      - key: WHATOMATE_STORAGE_LOCAL_PATH
+        value: /app/uploads
+
+databases:
+  - name: whatomate-db
+    databaseName: whatomate
+    plan: basic-256mb
+    postgresMajorVersion: "17"
+
+services:
+  # Redis-compatible cache and job queue (private network only)
+  - type: keyvalue
+    name: whatomate-redis
+    plan: starter
+    maxmemoryPolicy: noeviction
+    ipAllowList: []
+
+  # Public API + embedded frontend
+  - type: web
+    name: whatomate
+    runtime: docker
+    plan: starter
+    region: oregon
+    dockerfilePath: ./docker/Dockerfile
+    dockerContext: .
+    dockerCommand: ./render-start.sh server -migrate -workers 0
+    healthCheckPath: /health
+    disk:
+      name: uploads
+      mountPath: /app/uploads
+      sizeGB: 5
+    envVars:
+      - fromGroup: whatomate-shared
+      - key: DATABASE_URL
+        fromDatabase:
+          name: whatomate-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: whatomate-redis
+          property: connectionString
+      - key: WHATOMATE_APP_ENCRYPTION_KEY
+        generateValue: true
+      - key: WHATOMATE_JWT_SECRET
+        generateValue: true
+      - key: WHATOMATE_WHATSAPP_META_APP_SECRET
+        sync: false
+      - key: WHATOMATE_WHATSAPP_META_APP_ID
+        sync: false
+      - key: WHATOMATE_WHATSAPP_EMBEDDED_SIGNUP_CONFIG_ID
+        sync: false
+      - key: WHATOMATE_WHATSAPP_WEBHOOK_VERIFY_TOKEN
+        sync: false
+
+  # Background workers for campaigns, chatbot, and async jobs
+  - type: worker
+    name: whatomate-worker
+    runtime: docker
+    plan: starter
+    region: oregon
+    dockerfilePath: ./docker/Dockerfile
+    dockerContext: .
+    dockerCommand: ./render-start.sh worker -workers 2
+    envVars:
+      - fromGroup: whatomate-shared
+      - key: DATABASE_URL
+        fromDatabase:
+          name: whatomate-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: whatomate-redis
+          property: connectionString
+      - key: WHATOMATE_APP_ENCRYPTION_KEY
+        fromService:
+          type: web
+          name: whatomate
+          envVarKey: WHATOMATE_APP_ENCRYPTION_KEY
+      - key: WHATOMATE_JWT_SECRET
+        fromService:
+          type: web
+          name: whatomate
+          envVarKey: WHATOMATE_JWT_SECRET
